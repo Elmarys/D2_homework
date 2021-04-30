@@ -1,0 +1,130 @@
+1. Открываем интерактивную консоль Django
+python manage.py shell
+
+2. Импортируем библиотеки
+from django.contrib.auth.models import User
+from news.models import *
+
+3. Создаем двух пользователей (с помощью метода User.objects.create_user)
+ivan = User.objects.create_user('Ivan','123@gmail.com','password')
+peter = User.objects.create_user('Peter','234@gmail.com','password')
+
+4. Создаем два объекта модели Author, связанные с пользователями
+Author.objects.create(user = ivan)
+Author.objects.create(user = peter)
+
+5. Добавляем 5 категорий в модель Category
+Category.objects.create(title='Бизнес')
+Category.objects.create(title='Политика')
+Category.objects.create(title='Спорт')
+Category.objects.create(title='Культура')
+Category.objects.create(title='Наука')
+
+
+6. Добавить 2 статьи и 1 новость
+'Записываю авторов в переменные, так как раньше этого не сделал
+ivan_author = Author.objects.get(user = 1)
+peter_author = Author.objects.get(user = 2)
+
+'Записываю категории в переменные, так как раньше этого не сделал
+ politics = Category.objects.get(title = "Политика")
+ business = Category.objects.get(title="Бизнес")
+ sport = Category.objects.get(title="Спорт")
+ culture = Category.objects.get(title="Культура")
+ since = Category.objects.create(title='Наука')
+
+'Добавляю статьи и новость
+
+post1 = Post.objects.create(author= ivan_author,type = "NWS", category = politics, header = "Путин будет править еще 200 лет", text = "Совет Федерации Российской Фередации принялпопроавки в Основной Закон страны, увеличивающие полномочия д
+ействующего главы государства на 200 лет")
+
+7. Присваиваю категории
+post1.category.add(politics)
+post1.category.add(business)
+post2.category.add(culture)
+post2.category.add(since)
+post3.category.add(politics)
+post3.category.add(culture)
+
+8. Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий).
+>>> com1 = Comment.objects.create(post = post1,user_id=1, text = "Ура! Хватит времени, чтобы встать с колен!")
+>>> com2 = Comment.objects.create(post = post1,user_id=2, text = "Вот теперь заживем!")
+>>> com3 = Comment.objects.create(post = post2,user_id=1, text = "Это все неправда!")
+>>> com4 = Comment.objects.create(post = post2,user_id=2, text = "Только в нашей онлайн школе ты сможешь освоить навыки, без которых тебе не вижить. Описание по ссылке.")
+>>> com5 = Comment.objects.create(post = post3,user_id=1, text = "Ну не, я эти экспонаты каждый день вижу")
+>>> com6 = Comment.objects.create(post = post3,user_id=2, text = "Да туда только какой-то мужик седой и в костюме каждый день ходит. Больше никого...")
+
+9. Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов
+>>> post1.like()
+>>> post1.like()
+>>> post1.like()
+>>> post1.like()
+>>> post1.like()
+>>> post1.like()
+>>> post1.dislike()
+>>> post1.rating
+5
+>>> post2.dislike()
+>>> post2.dislike()
+>>> post2.dislike()
+>>> post2.dislike()
+>>> post2.like()
+>>> post2.rating
+-3
+>>> post3.like()
+>>> post3.dislike()
+>>> post3.dislike()
+>>> post3.dislike()
+>>> post3.rating
+-2
+
+10. Обновить рейтинги пользователей.
+
+' Получаем суммарный рейтинг статей 1-го автора
+ivan_posts = Post.objects.filter(author=1)
+ivan_articles_rating = ivan_posts.aggregate(Sum("rating"))
+ivan_articles_rating = ivan_articles_rating['rating__sum']
+
+' Получаем суммарный рейтинг комментариев 1-го автора
+ivan_comments = Comment.objects.filter(user=1)
+ivan_comments_rating = ivan_comments.aggregate(Sum("rating"))
+ivan_comments_rating = ivan_comments_rating['rating__sum']
+
+' Получаем суммарный рейтинг комментариев к постам 1-го автора
+all_comments = Comment.objects.all()
+comments_to_ivan = all_comments.filter(post__author=1)
+comments_to_ivan_rating = comments_to_ivan.aggregate(Sum("rating"))['rating__sum']
+
+
+' Получаем суммарный рейтинг статей 2-го автора
+peter_posts = Post.objects.filter(author=2)
+peter_articles_rating = peter_posts.aggregate(Sum("rating"))
+peter_articles_rating = peter_articles_rating['rating__sum']
+
+' Получаем суммарный рейтинг комментариев 2-го автора
+peter_comments = Comment.objects.filter(user=2)
+peter_comments_rating = peter_comments.aggregate(Sum("rating"))
+peter_comments_rating = peter_comments_rating['rating__sum']
+
+' Получаем суммарный рейтинг комментариев к постам 2-го автора
+comments_to_peter = all_comments.filter(post__author=2)
+comments_to_peter_rating = comments_to_peter.aggregate(Sum("rating"))['rating__sum']
+
+11. Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта).
+
+authors_rating = Author.objects.values("user__username","rating").order_by('rating')
+best_author = authors_rating[0]
+
+12. Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье
+
+post_rating = Post.objects.values("id","date_time", "author__user__username", "rating", "header").order_by('-rating')
+best_post = post_rating[0]
+
+' Получаем id лучшей новости'
+best_post_id = best_post['id']
+
+' выводим preview'
+Post.objects.get(id=best_post_id).preview()
+
+13. Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+best_post_comments = Comment.objects.filter(post__id=best_post_id).values("date_time", "user__username", "rating", "text")
