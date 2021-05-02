@@ -1,0 +1,47 @@
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+
+
+{% block title %}
+Новости
+{% endblock title %}
+
+
+{% block content %}
+<h1>Все новости</h1>
+<h2>Количество новостей: {{ allnews|length }}</h2>
+ {% if allnews %}
+        <table>
+            <tr>
+                <td>
+                    Заголовок
+                </td>
+                <td>
+                    Дата публикации
+                </td>
+
+                <td>
+                    Статья
+                </td>
+
+            </tr>
+        {% for anews in allnews %}
+            <tr>
+                <td>
+                    {{ anews.header| censor }}
+                </td>
+                <td>
+                    {{ anews.date_time|date:'d-m-Y H:i' }}
+                </td>
+
+                <td>
+                    {{ anews.text| truncatewords:20| censor }}
+                </td>
+
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <h2>Новостей нет!</h2>
+    {% endif %}
+{% endblock content %}
